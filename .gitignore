@@ -1,2 +1,11 @@
+.venv/
+__pycache__/
 data/
 results/
+yolo_dataset/
+*.jpg
+*.png
+*.pt
+*.weights
+generated_passwords.txt
+passowrd.py
