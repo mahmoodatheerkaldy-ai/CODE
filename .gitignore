@@ -7,6 +7,5 @@ yolo_dataset/
 *.png
 *.pt
 *.weights
-best.pt
 generated_passwords.txt
 passowrd.py
