@@ -57,7 +57,17 @@ try:
 except Exception as e:
     print(f"❌ Failed to open port: {e}")
     ser = None
+#--------------------------------------------------
+#HELPER FUNCTIONS.<><><><><><><><<><><><><><><><><>
+#--------------------------------------------------
+#fine other leg.
+def is_other_leg(leg):
+    if leg == left_set:
+        return right_set
+    return left_set
 # --------------------------------------------------
+#SERVO LEVEL.<><><><><><><><><><><<><><><><><><><><>
+#--------------------------------------------------
 #function to move a single servo to a target angle with optional speed control.
 def move_servo(servo, target_angle, speed=100):
     if ser is None or not ser.is_open:
@@ -74,24 +84,13 @@ def move_servo(servo, target_angle, speed=100):
         ser.write(command.encode())
     except Exception as e:
         print(f"❌ Error during transmission: {e}")
-
-# --------------------------------------------------
-#__helper functions__#
 #--------------------------------------------------
-#calculate the angle and the number of times to repeat the movement for angles greater than 20 degrees.
-def angle_devider(angle):
-    last_angle = angle % 20
-    repeating_times = angle // 20
-    return last_angle, repeating_times
-#function to get the wanted set and the second set based on the input set.
-def point_sets(set):
-    if set == left_set:
-        wanted_set = right_set
-        second_set = left_set
-    else:
-        wanted_set = left_set
-        second_set = right_set
-    return wanted_set, second_set
+def default_pos():
+    for servo in [LHF, LHS, LHT, LMF, LMS, LMT, LLF, LLS, LLT, RHF, RHS, RHT, RMF, RMS, RMT, RLF, RLS, RLT]:
+        move_servo(servo, 90)
+        time.sleep(0.05)
+#--------------------------------------------------
+#LEG LEVEL.<><><><><><><><><><><><><>
 #--------------------------------------------------
 #use it for one leg at a time.
 def move_leg(leg, pos):
@@ -104,97 +103,76 @@ def move_leg(leg, pos):
         move_servo(leg.second, 150 - i)
         move_servo(leg.third, 180 - i)
         time.sleep(0.05)
-#--------------------------------------------------
-#use it for three servos at the same time.
+
 def move_three_servos(servo1, servo2, servo3, pos):
     move_servo(servo1, pos)
     move_servo(servo2, pos)
     move_servo(servo3, pos)
-#--------------------------------------------------
-def move_three_servos_clockwise(set, pos):
+def x_clokwise(set, pos):
     move_servo(set.high.first, pos)
     move_servo(set.mid.first, 180 - pos)
     move_servo(set.low.first, pos)
-#------------------
-def move_three_servos_counterclockwise(set, pos):
+def x_counterclockwise(set, pos):
     move_servo(set.high.first, 180 - pos)
     move_servo(set.mid.first, pos)
     move_servo(set.low.first, 180 - pos)
 #--------------------------------------------------
-# just to set the legs up and move them to the position without putting them down.
-def set_legs_up(set):
+#SET LEVEL.<><><><><><><><><><><><><>
+#--------------------------------------------------
+def move_set_up(set, pos):
     move_three_servos(set.high.second, set.mid.second, set.low.second, 150)
     move_three_servos(set.high.third, set.mid.third, set.low.third, 180)
-#---------------
-#just to set the legs down after moving them up and forward or backward.
-def set_legs_down(set):
+#    time.sleep(0.3)
+#    move_three_servos(set.high.first, set.mid.first, set.low.first, pos)
+#    time.sleep(0.1)
+    
+def move_set_down(set):
+    for i in range(0, 90, 10):
+        move_three_servos(set.high.second, set.mid.second, set.low.second, 150 - i)
+        move_three_servos(set.high.third, set.mid.third, set.low.third, 180 - i)
+#        time.sleep(0.05)
+
+def move_set(set, pos):
+    move_three_servos(set.high.second, set.mid.second, set.low.second, 150)
+    move_three_servos(set.high.third, set.mid.third, set.low.third, 180)
+    time.sleep(0.3)
+    move_three_servos(set.high.first, set.mid.first, set.low.first, pos)
     time.sleep(0.1)
     for i in range(0, 90, 5):
         move_three_servos(set.high.second, set.mid.second, set.low.second, 150 - i)
         move_three_servos(set.high.third, set.mid.third, set.low.third, 180 - i)
         time.sleep(0.05)
 #--------------------------------------------------
-#use it for a set of legs at the same time.
-def move_set(set, pos):
-    set_legs_up(set)
-    time.sleep(0.5)
-    set_legs_down(set)
-move_three_servos_clockwise(left_set, 90)
+#FINAL FUCNTION.<><><><><><><><><><><><><><><><><>
 #--------------------------------------------------
-def push_forward(set):
-    move_three_servos(set, 70)
-#--------------------------------------------------
-def push_backward(set):
-    move_three_servos(set, 110)
+def for_ward(set, pos):
+    other = is_other_leg(set)
+    move_set_up(set, pos)
+    time.sleep(0.05)
+    move_three_servos(set.high.first, set.mid.first, set.low.first, pos)
+    move_three_servos(other.high.first, other.mid.first, other.low.first, 180 - pos)
+    time.sleep(0.05)
+    move_set_down(set)
+    move_set_up(other, 90)
+    time.sleep(0.3)
+    move_three_servos(other.high.first, other.mid.first, other.low.first, 90)
+    time.sleep(0.3)
+    move_three_servos(set.high.first, set.mid.first, set.low.first, 90)
+    move_set_down(other)
 
-#--------------------------------------------------
-#function to get all servos to set on 90 degree.
-def default_pos():
-    for servo in [LHF, LHS, LHT, LMF, LMS, LMT, LLF, LLS, LLT, RHF, RHS, RHT, RMF, RMS, RMT, RLF, RLS, RLT]:
-        move_servo(servo, 90)
-#--------------------------------------------------
-#started animations...
 
-def started_turn_right(set, degree):
-    wanted_set, second_set = point_sets(set)
-    set_legs_up(wanted_set, degree)
-    move_three_servos_clockwise(wanted_set, degree)
-    move_three_servos_counterclockwise(second_set, degree)
-    set_legs_down(wanted_set, degree)
+    
 
-def started_turn_left(set, degree):
-    wanted_set, second_set = point_sets(set)
 
-    set_legs_up(wanted_set, degree)
-    move_three_servos_counterclockwise(wanted_set, degree)
-    move_three_servos_clockwise(second_set, degree)
-    set_legs_down(wanted_set, degree)
 
-def started_for_ward(set, pos):
-    wanted_set, second_set = point_sets(set)
-    set_legs_up(wanted_set)
-    push_forward(second_set)
-    set_legs_down(wanted_set)
-
-def started_back_ward(set, pos):
-    wanted_set, second_set = point_sets(set)
-    set_legs_up(wanted_set, pos)
-    push_backward(second_set)
-    set_legs_down(wanted_set)
-#----------------------------------------------
-#end face animations...
-def end_turn_right(wanted_set, second_set, degree):
-    pass
-def end_turn_left(wanted_set, second_set, degree):
-    pass
-def end_for_ward(wanted_set, second_set, pos):
-    pass
-def end_back_ward(wanted_set, second_set, pos):
-    pass
-#--------------------------------------------------
-#final function to move the robot in a direction with a specific degree or position.
-set_legs_up(left_set)
-set_legs_down(left_set)
-set_legs_up(right_set)
-set_legs_down(right_set)
+move_set(left_set, 90)
+move_set(right_set, 90)
+time.sleep(1)
+for_ward(left_set, 115)
+time.sleep(1)
 default_pos()
+for i in range(5):
+    for_ward(left_set, 110)
+    for_ward(right_set, 110)
+default_pos()
+move_three_servos(LHF, RMF, LLF, 90)
