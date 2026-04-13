@@ -1,8 +1,3 @@
-class x_cord_servo:
-    def __init__(self, pin, pos, state = "left"):
-        self.pin = pin
-        self.pos = pos
-        self.state = state
 
 class left_servo:
     def __init__(self, pin, pos, state = "left"):

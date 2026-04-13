@@ -2,6 +2,7 @@ import serial
 import time
 import platform
 import legs
+import threading as devil
 #------------------------------------------------
 #define servos..
 LHF = legs.left_servo(1, 90)
@@ -38,6 +39,7 @@ left_low = legs.leg(LLF, LLS, LLT, LL)
 right_high = legs.leg(RHF, RHS, RHT, RH)
 right_mid = legs.leg(RMF, RMS, RMT, RM)
 right_low = legs.leg(RLF, RLS, RLT, RL)
+
 #-------------------------------------------------
 #define sets of legs...
 left_set = legs.set_of_legs(left_high, right_mid, left_low)
@@ -69,21 +71,23 @@ def is_other_leg(leg):
 #SERVO LEVEL.<><><><><><><><><><><<><><><><><><><><>
 #--------------------------------------------------
 #function to move a single servo to a target angle with optional speed control.
-def move_servo(servo, target_angle, speed=100):
+def move_servo(servo, target_angle, speed=700):
     if ser is None or not ser.is_open:
         print("⚠️ Serial port is not open!")
         return
+    servo.pos = target_angle
     if servo.state == "right":
         target_angle = 180 - target_angle
+
     pulse = int(500 + (target_angle / 180.0) * 2000)
     
     try:
         command = f"#{servo.pin}P{pulse}S{speed}\r\n"
-        servo.pos = pulse
         
         ser.write(command.encode())
     except Exception as e:
         print(f"❌ Error during transmission: {e}")
+    
 #--------------------------------------------------
 def default_pos():
     for servo in [LHF, LHS, LHT, LMF, LMS, LMT, LLF, LLS, LLT, RHF, RHS, RHT, RMF, RMS, RMT, RLF, RLS, RLT]:
@@ -108,6 +112,8 @@ def move_three_servos(servo1, servo2, servo3, pos):
     move_servo(servo1, pos)
     move_servo(servo2, pos)
     move_servo(servo3, pos)
+
+
 def x_clokwise(set, pos):
     move_servo(set.high.first, pos)
     move_servo(set.mid.first, 180 - pos)
@@ -119,60 +125,115 @@ def x_counterclockwise(set, pos):
 #--------------------------------------------------
 #SET LEVEL.<><><><><><><><><><><><><>
 #--------------------------------------------------
-def move_set_up(set, pos):
+def first_servos_smoth(set, other, direction, wight):
+    if direction > 0:
+        move_servo(set.high.first, set.high.first.pos - wight)
+        move_servo(set.mid.first, set.mid.first.pos - wight)
+        move_servo(set.low.first, set.low.first.pos - wight)
+        print(set.high.first.pos)
+        move_servo(other.high.first, other.high.first.pos - wight)
+        move_servo(other.mid.first, other.mid.first.pos - wight)
+        move_servo(other.low.first, other.low.first.pos - wight)
+        print(other.high.first.pos)
+    if direction < 0:
+        move_servo(set.high.first, set.high.first.pos + wight)
+        move_servo(set.mid.first, set.mid.first.pos + wight)
+        move_servo(set.low.first, set.low.first.pos + wight)
+        print(set.high.first.pos)
+        move_servo(other.high.first, other.high.first.pos + wight)
+        move_servo(other.mid.first, other.mid.first.pos + wight)
+        move_servo(other.low.first, other.low.first.pos + wight)
+        print(other.high.first.pos)
+
+def three_servo_clockwise(set,other,direction, wight):
+    if direction > 0:
+        move_servo(set.high.first, set.high.first.pos - wight)
+        move_servo(set.mid.first, set.mid.first.pos + wight)
+        move_servo(set.low.first, set.low.first.pos - wight)
+        print(set.high.first.pos)
+        move_servo(other.high.first, other.high.first.pos + wight)
+        move_servo(other.mid.first, other.mid.first.pos - wight)
+        move_servo(other.low.first, other.low.first.pos + wight)
+        print(other.high.first.pos)
+    if direction < 0:
+        move_servo(set.high.first, set.high.first.pos + wight)
+        move_servo(set.mid.first, set.mid.first.pos - wight)
+        move_servo(set.low.first, set.low.first.pos + wight)
+        print(set.high.first.pos)
+        move_servo(other.high.first, other.high.first.pos - wight)
+        move_servo(other.mid.first, other.mid.first.pos + wight)
+        move_servo(other.low.first, other.low.first.pos - wight)
+        print(other.high.first.pos)
+def move_set_up(set):
     move_three_servos(set.high.second, set.mid.second, set.low.second, 150)
     move_three_servos(set.high.third, set.mid.third, set.low.third, 180)
-#    time.sleep(0.3)
-#    move_three_servos(set.high.first, set.mid.first, set.low.first, pos)
-#    time.sleep(0.1)
-    
+
 def move_set_down(set):
     for i in range(0, 90, 10):
         move_three_servos(set.high.second, set.mid.second, set.low.second, 150 - i)
-        move_three_servos(set.high.third, set.mid.third, set.low.third, 180 - i)
-#        time.sleep(0.05)
+        move_three_servos(set.high.third, set.mid.third, set.low.third, 130)
 
 def move_set(set, pos):
-    move_three_servos(set.high.second, set.mid.second, set.low.second, 150)
+    move_three_servos(set.high.second, set.mid.second, set.low.second, 180)
     move_three_servos(set.high.third, set.mid.third, set.low.third, 180)
     time.sleep(0.3)
     move_three_servos(set.high.first, set.mid.first, set.low.first, pos)
     time.sleep(0.1)
-    for i in range(0, 90, 5):
-        move_three_servos(set.high.second, set.mid.second, set.low.second, 150 - i)
-        move_three_servos(set.high.third, set.mid.third, set.low.third, 180 - i)
-        time.sleep(0.05)
+    move_three_servos(set.high.second, set.mid.second, set.low.second, 60)
+    move_three_servos(set.high.third, set.mid.third, set.low.third, 90)
+
 #--------------------------------------------------
 #FINAL FUCNTION.<><><><><><><><><><><><><><><><><>
 #--------------------------------------------------
-def for_ward(set, pos):
+def forward(set,lenght):
+    speed = 0.05
+    wight = 5
     other = is_other_leg(set)
-    move_set_up(set, pos)
-    time.sleep(0.05)
-    move_three_servos(set.high.first, set.mid.first, set.low.first, pos)
-    move_three_servos(other.high.first, other.mid.first, other.low.first, 180 - pos)
-    time.sleep(0.05)
-    move_set_down(set)
-    move_set_up(other, 90)
-    time.sleep(0.3)
-    move_three_servos(other.high.first, other.mid.first, other.low.first, 90)
-    time.sleep(0.3)
-    move_three_servos(set.high.first, set.mid.first, set.low.first, 90)
-    move_set_down(other)
+    move_set(set, 120)
+    for i in range(lenght):
+        first_servos_smoth(set, other,1, wight)
+        
+        if LHF.pos <= 70:
+            t = devil.Thread(target=move_set, args=(set, 120,))
+            t.start()
+            time.sleep(0.5)
 
+        if RHF.pos <= 70:
+            t2 = devil.Thread(target=move_set, args=(other, 120,))
+            t2.start()
+            time.sleep(0.5)
+            move_three_servos(other.high.first, other.mid.first, other.low.first, 120)
+        print("done!!")
+        time.sleep(speed)
+    time.sleep(0.5)
+    move_set(set, 90)
+#--------------------------------------------------
+def stand_up():
+    move_set(left_set, 90)
+    time.sleep(0.2)
+    move_set(right_set, 90)
+#--------------------------------------------------
+def turn_left():
+    for x in range(3):
+        for i in range(3):
+            three_servo_clockwise(left_set, right_set, -1, 10)
+            time.sleep(0.05)
+        move_set(right_set, 90)
+        time.sleep(0.5)
+        move_set(left_set, 90)
+        time.sleep(0.5)
+def turn_right():
+    for x in range(3):
+        for i in range(3):
+            three_servo_clockwise(left_set, right_set, 1, 10)
+            time.sleep(0.05)
+        move_set(left_set, 90)
+        time.sleep(0.5)
+        move_set(right_set, 90)
+        time.sleep(0.5)
 
-    
-
-
-
-move_set(left_set, 90)
-move_set(right_set, 90)
-time.sleep(1)
-for_ward(left_set, 115)
-time.sleep(1)
+turn_left()
+turn_right()
 default_pos()
-for i in range(5):
-    for_ward(left_set, 110)
-    for_ward(right_set, 110)
-default_pos()
-move_three_servos(LHF, RMF, LLF, 90)
+stand_up()
+three_servo_clockwise(left_set, right_set, 1, 10)
