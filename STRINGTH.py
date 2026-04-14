@@ -185,55 +185,59 @@ def move_set(set, pos):
 #--------------------------------------------------
 #FINAL FUCNTION.<><><><><><><><><><><><><><><><><>
 #--------------------------------------------------
-def forward(set,lenght):
-    speed = 0.05
-    wight = 5
-    other = is_other_leg(set)
-    move_set(set, 120)
-    for i in range(lenght):
-        first_servos_smoth(set, other,1, wight)
-        
-        if LHF.pos <= 70:
-            t = devil.Thread(target=move_set, args=(set, 120,))
-            t.start()
-            time.sleep(0.5)
+class HEXAPOD:
+    def __init__(self):
+        pass
 
-        if RHF.pos <= 70:
-            t2 = devil.Thread(target=move_set, args=(other, 120,))
-            t2.start()
-            time.sleep(0.5)
-            move_three_servos(other.high.first, other.mid.first, other.low.first, 120)
-        print("done!!")
-        time.sleep(speed)
-    time.sleep(0.5)
-    move_set(set, 90)
-#--------------------------------------------------
-def stand_up():
-    move_set(left_set, 90)
-    time.sleep(0.2)
-    move_set(right_set, 90)
-#--------------------------------------------------
-def turn_left():
-    for x in range(3):
-        for i in range(3):
-            three_servo_clockwise(left_set, right_set, -1, 10)
-            time.sleep(0.05)
-        move_set(right_set, 90)
-        time.sleep(0.5)
-        move_set(left_set, 90)
-        time.sleep(0.5)
-def turn_right():
-    for x in range(3):
-        for i in range(3):
-            three_servo_clockwise(left_set, right_set, 1, 10)
-            time.sleep(0.05)
-        move_set(left_set, 90)
-        time.sleep(0.5)
-        move_set(right_set, 90)
-        time.sleep(0.5)
+    def forward(self,lenght):
+        set = left_set
+        speed = 0.05
+        wight = 5
+        other = is_other_leg(set)
+        move_set(set, 120)
+        for i in range(lenght * 10):
+            first_servos_smoth(set, other,1, wight)
+            
+            if LHF.pos <= 70:
+                t = devil.Thread(target=move_set, args=(set, 120,))
+                t.start()
+                time.sleep(0.7)
 
-turn_left()
-turn_right()
-default_pos()
-stand_up()
-three_servo_clockwise(left_set, right_set, 1, 10)
+            if RHF.pos <= 70:
+                t2 = devil.Thread(target=move_set, args=(other, 120,))
+                t2.start()
+                time.sleep(0.7)
+            #move_three_servos(other.high.first, other.mid.first, other.low.first, 120)
+            print("done!!")
+            time.sleep(speed)
+        time.sleep(0.5)
+        move_set(set, 90)
+#--------------------------------------------------
+    def stand_up(self):
+        move_set(left_set, 90)
+        time.sleep(0.2)
+        move_set(right_set, 90)
+#--------------------------------------------------
+    def turn_left(self,steps):
+        for x in range(steps):
+            for i in range(3):
+                three_servo_clockwise(left_set, right_set, -1, 10)
+                time.sleep(0.05)
+            move_set(right_set, 90)
+            time.sleep(0.5)
+            move_set(left_set, 90)
+            time.sleep(0.5)
+#--------------------------------------------------
+    def turn_right(self,steps):
+        for x in range(steps):
+            for i in range(3):
+                three_servo_clockwise(left_set, right_set, 1, 10)
+                time.sleep(0.05)
+            move_set(left_set, 90)
+            time.sleep(0.5)
+            move_set(right_set, 90)
+            time.sleep(0.5)
+    def defult_pos(self):
+        for servo in [LHF, LHS, LHT, LMF, LMS, LMT, LLF, LLS, LLT, RHF, RHS, RHT, RMF, RMS, RMT, RLF, RLS, RLT]:
+            move_servo(servo, 90)
+            time.sleep(0.05)
