@@ -1,33 +1,55 @@
-import matplotlib.pyplot as plt
-import numpy as np
+#Q1
 
-# 1. إدخال البيانات من ورقتك
-# الجهد (V)
-voltage = np.array([0, 5, 10, 15, 20, 25, 30])
-# التيار (I) بالامبير
-current = np.array([0, 0, 0.022, 0.034, 0.045, 0.057, 0.068])
+#--------------------------
+#Q2
+class vehicle:
+    def __init__(self, brand, year):
+        self.brand = brand
+        self.year = year
 
-# 2. حساب أفضل خط تناسب (Linear Regression) 
-# سنستخدم القراءات من 10 فولت فما فوق لأنها تمثل منطقة العمل الخطية
-mask = voltage >= 10
-m, b = np.polyfit(current[mask], voltage[mask], 1)
+    def move(self):
+        print(f"the vehicle is moving")
 
-# 3. إعداد الرسم البياني
-plt.figure(figsize=(8, 6))
-plt.scatter(current, voltage, color='red', label='Experimental Data (Points)')
-plt.plot(current[mask], m*current[mask] + b, color='blue', linestyle='--', 
-         label=f'Linear Fit (R = {m:.2f} Ω)')
+class car(vehicle):
+    def __init__(self, brand, year):
+        super().__init__(brand, year)
+    def move(self):
+        print(f"the car is driving on the road")
+    
+class plan(vehicle):
+    def __init__(self, brand, year):
+        super().__init__(brand, year)
+    def move(self):
+        print(f"the plan is fling in the are")
 
-# 4. إضافة العناوين والتنسيق
-plt.title("Verification of Ohm's Law", fontsize=14)
-plt.xlabel('Current (I) [Amperes]', fontsize=12)
-plt.ylabel('Voltage (V) [Volts]', fontsize=12)
-plt.grid(True, linestyle=':', alpha=0.7)
-plt.legend()
+c1 = car("supra", "200")
+p1 = plan("f12", "2007")
+lst = [c1, p1]
+for x in lst:
+    x.move()
 
-# إضافة نص يوضح قيمة المقاومة المحسوبة برمجياً
-plt.text(0.01, 25, f'Calculated R: {m:.2f} Ω', fontsize=12, 
-         bbox=dict(facecolor='white', alpha=0.5))
+#------------------
+#Q3
+class matrix:
+    def __init__(self, lst):
+        self.n = len(lst)
+        self.m = len(lst[0])
+        self.lst = lst
+    def __mul__(self, other):
+        new_lst = [[]]
+        def transorm(lst):
+            lost = [j for i, j in lst]
+            return lost
+        self.lst = transorm(self.lst)
+        other.lst = transorm(other.lst)
 
-# 5. عرض الرسم
-plt.show()
+        for i in range(len(self.lst)):
+            for j in range(len(self.lst)):
+                new_lst.append(self.lst[i][j] * other.lst[i][j])
+        return new_lst
+    
+n = matrix([[1, 2, 3],[4, 5, 6]]) 
+m = matrix([[7, 8],[9, 10],[11, 12]])
+
+lst = n * m
+print(lst)

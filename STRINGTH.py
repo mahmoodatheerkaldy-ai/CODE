@@ -183,7 +183,7 @@ def move_set(set, pos):
     move_three_servos(set.high.third, set.mid.third, set.low.third, 90)
 
 #--------------------------------------------------
-#FINAL FUCNTION.<><><><><><><><><><><><><><><><><>
+#FINAL FUCNTIONS.<><><><><><><><><><><><><><><><><>
 #--------------------------------------------------
 class HEXAPOD:
     def __init__(self):
@@ -195,6 +195,7 @@ class HEXAPOD:
         wight = 5
         other = is_other_leg(set)
         move_set(set, 120)
+        time.sleep(0.5)
         for i in range(lenght * 10):
             first_servos_smoth(set, other,1, wight)
             
@@ -208,6 +209,30 @@ class HEXAPOD:
                 t2.start()
                 time.sleep(0.7)
             #move_three_servos(other.high.first, other.mid.first, other.low.first, 120)
+            print("done!!")
+            time.sleep(speed)
+        time.sleep(0.5)
+        move_set(set, 90)
+#--------------------------------------------------
+    def back_ward(self,lenght):
+        set = left_set
+        speed = 0.05
+        wight = 5
+        other = is_other_leg(set)
+        move_set(set, 70)
+        time.sleep(0.5)
+        for i in range(lenght * 10):
+            first_servos_smoth(set, other,-1, wight)
+            
+            if LHF.pos >= 120:
+                t = devil.Thread(target=move_set, args=(set, 70,))
+                t.start()
+                time.sleep(0.7)
+            
+            if RHF.pos >= 120:
+                t2 = devil.Thread(target=move_set, args=(other, 70,))
+                t2.start()
+                time.sleep(0.7)
             print("done!!")
             time.sleep(speed)
         time.sleep(0.5)
@@ -241,3 +266,8 @@ class HEXAPOD:
         for servo in [LHF, LHS, LHT, LMF, LMS, LMT, LLF, LLS, LLT, RHF, RHS, RHT, RMF, RMS, RMT, RLF, RLS, RLT]:
             move_servo(servo, 90)
             time.sleep(0.05)
+    
+    def  recennect_to_port(self):
+        global ser
+        ser = serial.Serial('COM4', 9600)
+        print(f"✅ Serial Port {port} Opened Successfully.")
