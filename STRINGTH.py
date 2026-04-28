@@ -1,3 +1,4 @@
+from numpy import rint
 import serial
 import time
 import platform
@@ -262,12 +263,23 @@ class HEXAPOD:
             time.sleep(0.5)
             move_set(right_set, 90)
             time.sleep(0.5)
+#--------------------------------------------------
     def defult_pos(self):
         for servo in [LHF, LHS, LHT, LMF, LMS, LMT, LLF, LLS, LLT, RHF, RHS, RHT, RMF, RMS, RMT, RLF, RLS, RLT]:
             move_servo(servo, 90)
             time.sleep(0.05)
-    
-    def  recennect_to_port(self):
-        global ser
-        ser = serial.Serial('COM4', 9600)
+#--------------------------------------------------    
+    def driver_connection(self):
+        while True:
+            try:
+                port = get_servo_port()
+                ser = serial.Serial(port, 9600, timeout=1)
+                print(f"✅ Serial Port {port} Opened Successfully.")
+                break
+            except Exception as e:
+                print(f"❌ Failed to open port: {e}")
+                ser = None
+            print("failed to connect...")
+            time.sleep(1)
         print(f"✅ Serial Port {port} Opened Successfully.")
+
