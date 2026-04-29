@@ -2,49 +2,49 @@ from numpy import rint
 import serial
 import time
 import platform
-import legs
+import tools
 import threading as devil
 #------------------------------------------------
 #define servos..
-LHF = legs.left_servo(1, 90)
-LHS = legs.left_servo(2, 90)
-LHT = legs.left_servo(3, 90)
-LMF = legs.left_servo(4, 90)
-LMS = legs.left_servo(5, 90)
-LMT = legs.left_servo(6, 90)
-LLF = legs.left_servo(7, 90)
-LLS = legs.left_servo(8, 90)
-LLT = legs.left_servo(9, 90)
-RHF = legs.right_servo(32, 90)
-RHS = legs.right_servo(31, 90)
-RHT = legs.right_servo(30, 90)
-RMF = legs.right_servo(29, 90)
-RMS = legs.right_servo(28, 90)
-RMT = legs.right_servo(27, 90)
-RLF = legs.right_servo(26, 90)
-RLS = legs.right_servo(25, 90)
-RLT = legs.right_servo(24, 90)
+LHF = tools.left_servo(1, 90)
+LHS = tools.left_servo(2, 90)
+LHT = tools.left_servo(3, 90)
+LMF = tools.left_servo(4, 90)
+LMS = tools.left_servo(5, 90)
+LMT = tools.left_servo(6, 90)
+LLF = tools.left_servo(7, 90)
+LLS = tools.left_servo(8, 90)
+LLT = tools.left_servo(9, 90)
+RHF = tools.right_servo(32, 90)
+RHS = tools.right_servo(31, 90)
+RHT = tools.right_servo(30, 90)
+RMF = tools.right_servo(29, 90)
+RMS = tools.right_servo(28, 90)
+RMT = tools.right_servo(27, 90)
+RLF = tools.right_servo(26, 90)
+RLS = tools.right_servo(25, 90)
+RLT = tools.right_servo(24, 90)
 #-------------------------------------------------
 #define sensors...
-LH = legs.limit_switch(1)
-LM = legs.limit_switch(2)
-LL = legs.limit_switch(3)
-RH = legs.limit_switch(4)
-RM = legs.limit_switch(5)
-RL = legs.limit_switch(6)
+LH = tools.limit_switch(1)
+LM = tools.limit_switch(2)
+LL = tools.limit_switch(3)
+RH = tools.limit_switch(4)
+RM = tools.limit_switch(5)
+RL = tools.limit_switch(6)
 #-------------------------------------------------
 #define legs...
-left_high = legs.leg(LHF, LHS, LHT, LH)
-left_mid = legs.leg(LMF, LMS, LMT, LM)
-left_low = legs.leg(LLF, LLS, LLT, LL)
-right_high = legs.leg(RHF, RHS, RHT, RH)
-right_mid = legs.leg(RMF, RMS, RMT, RM)
-right_low = legs.leg(RLF, RLS, RLT, RL)
+left_high = tools.leg(LHF, LHS, LHT, LH)
+left_mid = tools.leg(LMF, LMS, LMT, LM)
+left_low = tools.leg(LLF, LLS, LLT, LL)
+right_high = tools.leg(RHF, RHS, RHT, RH)
+right_mid = tools.leg(RMF, RMS, RMT, RM)
+right_low = tools.leg(RLF, RLS, RLT, RL)
 
 #-------------------------------------------------
 #define sets of legs...
-left_set = legs.set_of_legs(left_high, right_mid, left_low)
-right_set = legs.set_of_legs(right_high, left_mid, right_low)
+left_set = tools.set_of_legs(left_high, right_mid, left_low)
+right_set = tools.set_of_legs(right_high, left_mid, right_low)
 #--------------------------------------------------
 #define port...
 def get_servo_port():
@@ -151,20 +151,19 @@ def three_servo_clockwise(set,other,direction, wight):
         move_servo(set.high.first, set.high.first.pos - wight)
         move_servo(set.mid.first, set.mid.first.pos + wight)
         move_servo(set.low.first, set.low.first.pos - wight)
-        print(set.high.first.pos)
         move_servo(other.high.first, other.high.first.pos + wight)
         move_servo(other.mid.first, other.mid.first.pos - wight)
         move_servo(other.low.first, other.low.first.pos + wight)
-        print(other.high.first.pos)
+
     if direction < 0:
         move_servo(set.high.first, set.high.first.pos + wight)
         move_servo(set.mid.first, set.mid.first.pos - wight)
         move_servo(set.low.first, set.low.first.pos + wight)
-        print(set.high.first.pos)
         move_servo(other.high.first, other.high.first.pos - wight)
         move_servo(other.mid.first, other.mid.first.pos + wight)
         move_servo(other.low.first, other.low.first.pos - wight)
-        print(other.high.first.pos)
+
+
 def move_set_up(set):
     move_three_servos(set.high.second, set.mid.second, set.low.second, 150)
     move_three_servos(set.high.third, set.mid.third, set.low.third, 180)
@@ -247,7 +246,7 @@ class HEXAPOD:
     def turn_left(self,steps):
         for x in range(steps):
             for i in range(3):
-                three_servo_clockwise(left_set, right_set, -1, 10)
+                three_servo_clockwise(left_set, right_set, -1, 1)
                 time.sleep(0.05)
             move_set(right_set, 90)
             time.sleep(0.5)
@@ -257,7 +256,7 @@ class HEXAPOD:
     def turn_right(self,steps):
         for x in range(steps):
             for i in range(3):
-                three_servo_clockwise(left_set, right_set, 1, 10)
+                three_servo_clockwise(left_set, right_set, 1, 1)
                 time.sleep(0.05)
             move_set(left_set, 90)
             time.sleep(0.5)

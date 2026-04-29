@@ -1,3 +1,4 @@
+import gpio as g
 
 class left_servo:
     def __init__(self, pin, pos, state = "left"):
@@ -12,9 +13,11 @@ class right_servo:
         self.state = state
 
 class limit_switch:
-    def __init__(self, pin, set = False):
-        self.pin = pin
-        self.set = set
+    def __init__(self, pin):
+        self.pin = g.setup(pin, g.IN, pullup_down=g.PUD_UP)
+    
+    def is_pressed(self):
+        return g.input(self.pin) == g.LOW
 
 class leg:
     def __init__(self, first, second, third, sensor):
