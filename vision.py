@@ -3,7 +3,7 @@ from ultralytics import YOLO
 import cv2
 
 # 1. تحميل الموديل
-model = YOLO('best.pt')
+model = YOLO('yolov8n.pt')
 
 # 2. تحديد مسار الصور (تأكد من مطابقة المسار في جهازك)
 image_folder = r'data\test images'

@@ -1,56 +1,57 @@
 import serial
 import time
 import platform
-import legs
+import tools
 import threading as devil
+
 #------------------------------------------------
 #define servos..
-LHF = legs.left_servo(1, 90)
-LHS = legs.left_servo(2, 90)
-LHT = legs.left_servo(3, 90)
-LMF = legs.left_servo(4, 90)
-LMS = legs.left_servo(5, 90)
-LMT = legs.left_servo(6, 90)
-LLF = legs.left_servo(7, 90)
-LLS = legs.left_servo(8, 90)
-LLT = legs.left_servo(9, 90)
-RHF = legs.right_servo(32, 90)
-RHS = legs.right_servo(31, 90)
-RHT = legs.right_servo(30, 90)
-RMF = legs.right_servo(29, 90)
-RMS = legs.right_servo(28, 90)
-RMT = legs.right_servo(27, 90)
-RLF = legs.right_servo(26, 90)
-RLS = legs.right_servo(25, 90)
-RLT = legs.right_servo(24, 90)
+LHF = tools.left_servo(1, 90)
+LHS = tools.left_servo(2, 90)
+LHT = tools.left_servo(3, 90)
+LMF = tools.left_servo(4, 90)
+LMS = tools.left_servo(5, 90)
+LMT = tools.left_servo(6, 90)
+LLF = tools.left_servo(7, 90)
+LLS = tools.left_servo(8, 90)
+LLT = tools.left_servo(9, 90)
+RHF = tools.right_servo(32, 90)
+RHS = tools.right_servo(31, 90)
+RHT = tools.right_servo(30, 90)
+RMF = tools.right_servo(29, 90)
+RMS = tools.right_servo(28, 90)
+RMT = tools.right_servo(27, 90)
+RLF = tools.right_servo(26, 90)
+RLS = tools.right_servo(25, 90)
+RLT = tools.right_servo(24, 90)
 #-------------------------------------------------
 #define sensors...
-LH = legs.limit_switch(1)
-LM = legs.limit_switch(2)
-LL = legs.limit_switch(3)
-RH = legs.limit_switch(4)
-RM = legs.limit_switch(5)
-RL = legs.limit_switch(6)
+LH = tools.limit_switch(17)
+LM = tools.limit_switch(27)
+LL = tools.limit_switch(22)
+RH = tools.limit_switch(5)
+RM = tools.limit_switch(6)
+RL = tools.limit_switch(26)
 #-------------------------------------------------
 #define legs...
-left_high = legs.leg(LHF, LHS, LHT, LH)
-left_mid = legs.leg(LMF, LMS, LMT, LM)
-left_low = legs.leg(LLF, LLS, LLT, LL)
-right_high = legs.leg(RHF, RHS, RHT, RH)
-right_mid = legs.leg(RMF, RMS, RMT, RM)
-right_low = legs.leg(RLF, RLS, RLT, RL)
+left_high = tools.leg(LHF, LHS, LHT, LH)
+left_mid = tools.leg(LMF, LMS, LMT, LM)
+left_low = tools.leg(LLF, LLS, LLT, LL)
+right_high = tools.leg(RHF, RHS, RHT, RH)
+right_mid = tools.leg(RMF, RMS, RMT, RM)
+right_low = tools.leg(RLF, RLS, RLT, RL)
 
 #-------------------------------------------------
 #define sets of legs...
-left_set = legs.set_of_legs(left_high, right_mid, left_low)
-right_set = legs.set_of_legs(right_high, left_mid, right_low)
+left_set = tools.set_of_legs(left_high, right_mid, left_low)
+right_set = tools.set_of_legs(right_high, left_mid, right_low)
 #--------------------------------------------------
 #define port...
 def get_servo_port():
     current_os = platform.system()
     if current_os == "Windows":
         return "COM5"
-    return "/dev/ttyUSB0"
+    return "/dev/ttyACM0"
 
 try:
     port = get_servo_port()
@@ -87,6 +88,19 @@ def move_servo(servo, target_angle, speed=700):
         ser.write(command.encode())
     except Exception as e:
         print(f"❌ Error during transmission: {e}")
+
+def limit_switch_status():
+    status = {
+        "LH": LH.is_active(),
+        "LM": LM.is_active(),
+        "LL": LL.is_active(),
+        "RH": RH.is_active(),
+        "RM": RM.is_active(),
+        "RL": RL.is_active()
+    }
+    return status
+
+print(f"\n statsus: {limit_switch_status()}\n")
     
 #--------------------------------------------------
 def default_pos():
@@ -104,6 +118,9 @@ def move_leg(leg, pos):
     move_servo(leg.first, pos)
     time.sleep(0.1)
     for i in range(0, 90, 5):
+        leg.sensor.update()
+        if leg.sensor.is_pressed():
+            break
         move_servo(leg.second, 150 - i)
         move_servo(leg.third, 180 - i)
         time.sleep(0.05)
