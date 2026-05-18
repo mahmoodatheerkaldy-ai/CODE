@@ -1,12 +1,8 @@
 import STRINGTH as st
 from time import sleep
-structure = st.HEXAPOD()
-
-while True:
-    structure.forward(1)
-    sleep(4)
-    structure.turn_left(2)
-    sleep(4)
-    structure.turn_right(2)
-    sleep(4)
-    
+stru = st.HEXAPOD()
+stru.stand_up()
+sleep(1)
+stru.forward(2)
+sleep(1)
+stru.defult_pos()
