@@ -3,7 +3,8 @@ import time
 import platform
 import tools
 import threading as devil
-
+#------------------------------------------------
+imu = tools.imu_sensor()
 #------------------------------------------------
 #define servos..
 LHF = tools.left_servo(1, 90)
@@ -100,6 +101,7 @@ def limit_switch_status():
         "RL": RL.is_active()
     }
     return status
+print(limit_switch_status())
 
 def all_sensors_active():
     count = 0
@@ -111,6 +113,7 @@ def all_sensors_active():
     return False
 
 print(f"\n statsus: {limit_switch_status()}\n")
+
     
 #--------------------------------------------------
 def default_pos():
@@ -134,7 +137,6 @@ def move_leg(leg, pos):
         move_servo(leg.second, 140 - i)
         move_servo(leg.third, 170 - i)
         time.sleep(0.05)
-
 
 def move_three_servos(servo1, servo2, servo3, pos):
     move_servo(servo1, pos)
@@ -203,6 +205,27 @@ def three_servo_clockwise(set,other,direction, wight):
         move_servo(other.mid.first, other.mid.first.pos + wight)
         move_servo(other.low.first, other.low.first.pos - wight)
         print(other.high.first.pos)
+
+def three_servo_clockwise_direct_pos(set,other,direction, pos):
+    if direction > 0:
+        move_servo(set.high.first, pos)
+        move_servo(set.mid.first, 180 - pos)
+        move_servo(set.low.first, pos)
+        print(set.high.first.pos)
+        move_servo(other.high.first, 180 - pos)
+        move_servo(other.mid.first, pos)
+        move_servo(other.low.first, 180 - pos)
+        print(other.high.first.pos)
+    if direction < 0:
+        move_servo(set.high.first, 180 - pos)
+        move_servo(set.mid.first, pos)
+        move_servo(set.low.first, 180 - pos)
+        print(set.high.first.pos)
+        move_servo(other.high.first, pos)
+        move_servo(other.mid.first, 180 - pos)
+        move_servo(other.low.first, pos)
+        print(other.high.first.pos)
+
 def move_set_up(set):
     move_three_servos(set.high.second, set.mid.second, set.low.second, 150)
     move_three_servos(set.high.third, set.mid.third, set.low.third, 180)
@@ -213,8 +236,8 @@ def move_set_down(set):
         move_three_servos(set.high.third, set.mid.third, set.low.third, 130)
 
 def move_set(set, pos):
-    move_three_servos(set.high.second, set.mid.second, set.low.second, 180)
-    move_three_servos(set.high.third, set.mid.third, set.low.third, 180)
+    move_three_servos(set.high.second, set.mid.second, set.low.second, 150)
+    move_three_servos(set.high.third, set.mid.third, set.low.third, 170)
     time.sleep(0.3)
     move_three_servos(set.high.first, set.mid.first, set.low.first, pos)
     time.sleep(0.1)
@@ -240,9 +263,21 @@ def move_set_limit(set, pos):
             move_two_servos(set.low.second, set.low.third, i)
             
         if all_sensors_active() == True:
-            body_up(set, 25)
             break
-        time.sleep(0.06)
+        time.sleep(0.05)
+    body_up(set, 20)
+
+
+def fix_slop( pitch, roll):
+    #pitch correction
+    print(LHS.pos)
+    move_servo(LHS, LHS.pos - int(pitch))
+    print(LHS.pos)
+    move_servo(RHS, RHS.pos - int(pitch))
+    move_servo(LLS, LLS.pos + int(pitch))
+    move_servo(RLS, RLS.pos + int(pitch))
+
+
 
 #--------------------------------------------------
 #FINAL FUCNTION.<><><><><><><><><><><><><><><><><>
@@ -250,7 +285,18 @@ def move_set_limit(set, pos):
 class HEXAPOD:
     def __init__(self):
         pass
+        
+    def fix_body_slop(self):
+        pitch, roll = self.get_angles()
+        fix_slop(pitch, roll)
+        
+    def get_angles(self):
+            pitch, roll = imu.get_angles()
+            print(f"Pitch: {pitch:.2f}°, Roll: {roll:.2f}°")
+            return pitch, roll
 
+        #roll correction
+#--------------------------------------------------
     def forward(self,lenght):
         set = left_set
         speed = 0.05
@@ -258,7 +304,9 @@ class HEXAPOD:
         other = is_other_leg(set)
         move_set_limit(set, 120)
         time.sleep(0.2)
-        for i in range(lenght * 10):
+        for i in range(lenght):
+            pitch, roll = imu.update_angles()
+            print(f"Pitch: {pitch:.2f}°, Roll: {roll:.2f}°")
             first_servos_smoth(set, other,1, wight)
             
             if LHF.pos <= 70:
@@ -272,6 +320,32 @@ class HEXAPOD:
             print("done!!")
             time.sleep(speed)
         time.sleep(0.5)
+        pitch, roll = self.get_angles()
+        print(f"Final Pitch: {pitch:.2f}°, Final Roll: {roll:.2f}°")
+        move_set_limit(set, 90)
+        print("done!!")
+        
+    def backward(self,lenght):
+        set = left_set
+        speed = 0.05
+        wight = 5
+        other = is_other_leg(set)
+        move_set_limit(set, 60)
+        time.sleep(0.2)
+        for i in range(lenght):
+            first_servos_smoth(set, other,-1, wight)
+            
+            if LHF.pos >= 110:
+                move_set_limit(set, 60)
+                time.sleep(0.2)
+
+            if RHF.pos >= 110:
+                move_set_limit(other, 60)
+                time.sleep(0.2)
+            #move_three_servos(other.high.first, other.mid.first, other.low.first, 60)
+            print("done!!")
+            time.sleep(speed)
+        time.sleep(0.5)
         move_set_limit(set, 90)
         print("done!!")
 #--------------------------------------------------
@@ -279,28 +353,43 @@ class HEXAPOD:
         move_set(left_set, 90)
         time.sleep(0.2)
         move_set(right_set, 90)
+        body_up(left_set, 20)
+        body_up(right_set, 20)
+        print(f"{LHS.pos} {RHS.pos} {LLS.pos} {RLS.pos}")
 #--------------------------------------------------
     def turn_left(self,steps):
-        for x in range(steps):
-            for i in range(3):
-                three_servo_clockwise(left_set, right_set, -1, 10)
-                time.sleep(0.05)
-            move_set(right_set, 90)
-            time.sleep(0.5)
-            move_set(left_set, 90)
-            time.sleep(0.5)
+        count = 90
+        for x in range((steps * 2) - 25):
+            three_servo_clockwise_direct_pos(right_set, left_set, -1, count)
+            time.sleep(0.014)
+            count += 1
+            if count >= 120:
+                count = 90
+                move_set_limit(right_set, 90)
+                time.sleep(0.2)
+                move_set_limit(left_set, 90)
+                time.sleep(0.2)
+        move_set_limit(right_set, 90)
+        time.sleep(0.1)
+        move_set_limit(left_set, 90)
 #--------------------------------------------------
     def turn_right(self,steps):
-        for x in range(steps):
-            for i in range(3):
-                three_servo_clockwise(left_set, right_set, 1, 10)
-                time.sleep(0.05)
-            move_set(left_set, 90)
-            time.sleep(0.5)
-            move_set(right_set, 90)
-            time.sleep(0.5)
+        count = 90
+        for x in range((steps * 2) - 25):
+            three_servo_clockwise_direct_pos(left_set, right_set, -1, count)
+            time.sleep(0.02)
+            count += 1
+            if count >= 120:
+                count = 90
+                move_set_limit(left_set, 90)
+                time.sleep(0.2)
+                move_set_limit(right_set, 90)
+                time.sleep(0.2)
+        move_set_limit(left_set, 90)
+        time.sleep(0.1)
+        move_set_limit(right_set, 90)
 #--------------------------------------------------
-    def defult_pos(self):
+    def default_pos(self):
         for servo in [LHF, LHS, LHT, LMF, LMS, LMT, LLF, LLS, LLT, RHF, RHS, RHT, RMF, RMS, RMT, RLF, RLS, RLT]:
             move_servo(servo, 90)
             time.sleep(0.05)
@@ -327,3 +416,4 @@ class HEXAPOD:
     
     def dir_right(self):
         move_servo(camera, 0)
+    
