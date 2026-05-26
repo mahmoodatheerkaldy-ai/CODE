@@ -3,7 +3,7 @@ import subprocess
 import numpy as np
 import os
 
-def main():
+def capture_image():
     print("جاري استدعاء حساس الكاميرا عبر بايبلاين النظام (rpicam-still)...")
     
     # اسم الملف المؤقت لحفظ الصورة من النظام
@@ -51,6 +51,3 @@ def main():
         print(f"❌ فشل بايبلاين النظام في التقاط الصورة: {e}")
     except Exception as e:
         print(f"❌ حدث خطأ غير متوقع: {e}")
-
-if __name__ == "__main__":
-    main()

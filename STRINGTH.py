@@ -305,17 +305,17 @@ class HEXAPOD:
         move_set_limit(set, 120)
         time.sleep(0.2)
         for i in range(lenght):
-            pitch, roll = imu.update_angles()
-            print(f"Pitch: {pitch:.2f}°, Roll: {roll:.2f}°")
             first_servos_smoth(set, other,1, wight)
             
             if LHF.pos <= 70:
                 move_set_limit(set, 120)
                 time.sleep(0.2)
+                self.fix_body_slop()
 
             if RHF.pos <= 70:
                 move_set_limit(other, 120)
                 time.sleep(0.2)
+                self.fix_body_slop()
             #move_three_servos(other.high.first, other.mid.first, other.low.first, 120)
             print("done!!")
             time.sleep(speed)
@@ -324,7 +324,7 @@ class HEXAPOD:
         print(f"Final Pitch: {pitch:.2f}°, Final Roll: {roll:.2f}°")
         move_set_limit(set, 90)
         print("done!!")
-        
+#--------------------------------------------------
     def backward(self,lenght):
         set = left_set
         speed = 0.05
@@ -338,10 +338,12 @@ class HEXAPOD:
             if LHF.pos >= 110:
                 move_set_limit(set, 60)
                 time.sleep(0.2)
+                self.fix_body_slop()
 
             if RHF.pos >= 110:
                 move_set_limit(other, 60)
                 time.sleep(0.2)
+                self.fix_body_slop()
             #move_three_servos(other.high.first, other.mid.first, other.low.first, 60)
             print("done!!")
             time.sleep(speed)
@@ -409,7 +411,8 @@ class HEXAPOD:
             time.sleep(0.06)
 
     def camera_center(self):
-        move_servo(camera, 90)
+        move_servo(camera, 80)
+        print("i do it motherfucker")
     
     def dir_left(self):
         move_servo(camera, 180)
