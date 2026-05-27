@@ -60,6 +60,7 @@ class leg:
         self.second = second
         self.third = third
         self.sensor = sensor
+        self.sting_stat = False
 
     def check_floor(self):
         return self.sensor.is_active()

@@ -132,6 +132,8 @@ def main():
                     else:
                         current_log = "🎥 [CAMERA] Simulation Mode - Turned Right."
                     update_screen(log_message=current_log)
+                
+                
 
                 # 4. Accumulate Movement
                 elif key in ['w', 's', 'a', 'd']:

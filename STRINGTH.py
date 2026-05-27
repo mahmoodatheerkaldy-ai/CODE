@@ -131,7 +131,7 @@ def move_leg(leg, pos):
     time.sleep(0.3)
     move_servo(leg.first, pos)
     time.sleep(0.1)
-    for i in range(0, 100, 5):
+    for i in range(0, 120, 5):
         if leg.sensor.is_active() == True:
             break
         move_servo(leg.second, 140 - i)
@@ -154,6 +154,26 @@ def body_up(set, wight):
     move_servo(set.mid.third, set.mid.third.pos - wight)
     move_servo(set.low.second, set.low.second.pos - wight)
     move_servo(set.low.third, set.low.third.pos - wight)
+
+def body_up_without_sting(set, wight):
+    move_servo(set.mid.second, set.mid.second.pos - wight)
+    move_servo(set.mid.third, set.mid.third.pos - wight)
+    move_servo(set.low.second, set.low.second.pos - wight)
+    move_servo(set.low.third, set.low.third.pos - wight)
+
+def body_down(set, wight):
+    move_servo(set.high.second, set.high.second.pos + wight)
+    move_servo(set.high.third, set.high.third.pos + wight)
+    move_servo(set.mid.second, set.mid.second.pos + wight)
+    move_servo(set.mid.third, set.mid.third.pos + wight)
+    move_servo(set.low.second, set.low.second.pos + wight)
+    move_servo(set.low.third, set.low.third.pos + wight)
+
+def body_down_without_sting(set, wight):
+    move_servo(set.mid.second, set.mid.second.pos + wight)
+    move_servo(set.mid.third, set.mid.third.pos + wight)
+    move_servo(set.low.second, set.low.second.pos + wight)
+    move_servo(set.low.third, set.low.third.pos + wight)
 
 def x_clokwise(set, pos):
     move_servo(set.high.first, pos)
@@ -277,8 +297,15 @@ def fix_slop( pitch, roll):
     move_servo(LLS, LLS.pos + int(pitch))
     move_servo(RLS, RLS.pos + int(pitch))
 
+def sf():
+    for x in range(40):
+        first_servos_smoth(right_set, left_set,1, 1)
+        time.sleep(0.05)
 
-
+def sb():
+    for x in range(40):
+        first_servos_smoth(right_set, left_set,-1, 1) 
+        time.sleep(0.05)
 #--------------------------------------------------
 #FINAL FUCNTION.<><><><><><><><><><><><><><><><><>
 #--------------------------------------------------
@@ -295,7 +322,54 @@ class HEXAPOD:
             print(f"Pitch: {pitch:.2f}°, Roll: {roll:.2f}°")
             return pitch, roll
 
+    def d(self):
+        sf()
+    def b(self):
+        sb()
         #roll correction
+#--------------------------------------------------
+    def set_sting_ready(self):
+        move_servo(RHF, 130)
+        move_servo(RHS, 90)
+        time.sleep(0.3)
+        move_servo(RHT, 130)
+        time.sleep(0.3)
+        move_servo(RHS, 0)
+        right_high.sting_stat = True
+        print(right_high.sting_stat)
+
+
+    
+    def set_sting_back(self):
+        move_servo(RHS, 90)
+        time.sleep(0.5)
+        move_leg(right_high, 90)
+        right_high.sting_stat = False
+        print(right_high.sting_stat)
+    
+    def support_leg_on(self):
+        move_leg(right_mid, 135)
+    
+    def support_leg_off(self):
+        move_leg(right_mid, 90)
+    
+    def all_body_up(self, wight):
+        for x in range(wight):
+            if right_high.sting_stat == True:
+                body_up_without_sting(right_set, 1)
+            else:
+                body_up(right_set, 1)
+            body_up(left_set, 1)
+            time.sleep(0.1)
+    
+    def all_body_down(self, wight):
+        for x in range(wight):
+            if right_high.sting_stat == True:
+                body_down_without_sting(right_set, 1)
+            else:
+                body_down(right_set, 1)
+            body_down(left_set, 1)
+            time.sleep(0.1)
 #--------------------------------------------------
     def forward(self,lenght):
         set = left_set
@@ -355,8 +429,8 @@ class HEXAPOD:
         move_set(left_set, 90)
         time.sleep(0.2)
         move_set(right_set, 90)
-        body_up(left_set, 20)
-        body_up(right_set, 20)
+        body_up(left_set, 40)
+        body_up(right_set, 40)
         print(f"{LHS.pos} {RHS.pos} {LLS.pos} {RLS.pos}")
 #--------------------------------------------------
     def turn_left(self,steps):
