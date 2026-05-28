@@ -101,7 +101,6 @@ def limit_switch_status():
         "RL": RL.is_active()
     }
     return status
-print(limit_switch_status())
 
 def all_sensors_active():
     count = 0
@@ -191,60 +190,60 @@ def first_servos_smoth(set, other, direction, wight):
         move_servo(set.high.first, set.high.first.pos - wight)
         move_servo(set.mid.first, set.mid.first.pos - wight)
         move_servo(set.low.first, set.low.first.pos - wight)
-        print(set.high.first.pos)
+
         move_servo(other.high.first, other.high.first.pos - wight)
         move_servo(other.mid.first, other.mid.first.pos - wight)
         move_servo(other.low.first, other.low.first.pos - wight)
-        print(other.high.first.pos)
+
     if direction < 0:
         move_servo(set.high.first, set.high.first.pos + wight)
         move_servo(set.mid.first, set.mid.first.pos + wight)
         move_servo(set.low.first, set.low.first.pos + wight)
-        print(set.high.first.pos)
+
         move_servo(other.high.first, other.high.first.pos + wight)
         move_servo(other.mid.first, other.mid.first.pos + wight)
         move_servo(other.low.first, other.low.first.pos + wight)
-        print(other.high.first.pos)
+
 
 def three_servo_clockwise(set,other,direction, wight):
     if direction > 0:
         move_servo(set.high.first, set.high.first.pos - wight)
         move_servo(set.mid.first, set.mid.first.pos + wight)
         move_servo(set.low.first, set.low.first.pos - wight)
-        print(set.high.first.pos)
+
         move_servo(other.high.first, other.high.first.pos + wight)
         move_servo(other.mid.first, other.mid.first.pos - wight)
         move_servo(other.low.first, other.low.first.pos + wight)
-        print(other.high.first.pos)
+
     if direction < 0:
         move_servo(set.high.first, set.high.first.pos + wight)
         move_servo(set.mid.first, set.mid.first.pos - wight)
         move_servo(set.low.first, set.low.first.pos + wight)
-        print(set.high.first.pos)
+
         move_servo(other.high.first, other.high.first.pos - wight)
         move_servo(other.mid.first, other.mid.first.pos + wight)
         move_servo(other.low.first, other.low.first.pos - wight)
-        print(other.high.first.pos)
+
 
 def three_servo_clockwise_direct_pos(set,other,direction, pos):
     if direction > 0:
         move_servo(set.high.first, pos)
         move_servo(set.mid.first, 180 - pos)
         move_servo(set.low.first, pos)
-        print(set.high.first.pos)
+
         move_servo(other.high.first, 180 - pos)
         move_servo(other.mid.first, pos)
         move_servo(other.low.first, 180 - pos)
-        print(other.high.first.pos)
+
     if direction < 0:
         move_servo(set.high.first, 180 - pos)
         move_servo(set.mid.first, pos)
         move_servo(set.low.first, 180 - pos)
-        print(set.high.first.pos)
+
         move_servo(other.high.first, pos)
         move_servo(other.mid.first, 180 - pos)
         move_servo(other.low.first, pos)
-        print(other.high.first.pos)
+
 
 def move_set_up(set):
     move_three_servos(set.high.second, set.mid.second, set.low.second, 150)
@@ -306,6 +305,35 @@ def sb():
     for x in range(40):
         first_servos_smoth(right_set, left_set,-1, 1) 
         time.sleep(0.05)
+
+
+
+
+def set_sting_ready():
+    move_servo(RHF, 130)
+    move_servo(RHS, 90)
+    time.sleep(0.3)
+    move_servo(RHT, 130)
+    time.sleep(0.3)
+    move_servo(RHS, 0)
+    right_high.sting_stat = True
+
+
+
+
+def set_sting_back():
+    move_servo(RHS, 90)
+    time.sleep(0.5)
+    move_leg(right_high, 90)
+    right_high.sting_stat = False
+
+
+def support_leg_on():
+    move_leg(right_mid, 135)
+
+def support_leg_off():
+    move_leg(right_mid, 90)
+
 #--------------------------------------------------
 #FINAL FUCNTION.<><><><><><><><><><><><><><><><><>
 #--------------------------------------------------
@@ -319,7 +347,7 @@ class HEXAPOD:
         
     def get_angles(self):
             pitch, roll = imu.get_angles()
-            print(f"Pitch: {pitch:.2f}°, Roll: {roll:.2f}°")
+
             return pitch, roll
 
     def d(self):
@@ -327,32 +355,18 @@ class HEXAPOD:
     def b(self):
         sb()
         #roll correction
-#--------------------------------------------------
-    def set_sting_ready(self):
-        move_servo(RHF, 130)
-        move_servo(RHS, 90)
-        time.sleep(0.3)
-        move_servo(RHT, 130)
-        time.sleep(0.3)
-        move_servo(RHS, 0)
-        right_high.sting_stat = True
-        print(right_high.sting_stat)
-
-
-    
-    def set_sting_back(self):
-        move_servo(RHS, 90)
+    def get_mos_ready(self):
+        support_leg_on()
         time.sleep(0.5)
-        move_leg(right_high, 90)
-        right_high.sting_stat = False
-        print(right_high.sting_stat)
+        set_sting_ready()
+        time.sleep(0.5)
     
-    def support_leg_on(self):
-        move_leg(right_mid, 135)
-    
-    def support_leg_off(self):
-        move_leg(right_mid, 90)
-    
+    def get_mos_off(self):
+        set_sting_back()
+        time.sleep(0.5)
+        support_leg_off()
+#--------------------------------------------------
+
     def all_body_up(self, wight):
         for x in range(wight):
             if right_high.sting_stat == True:
@@ -391,13 +405,13 @@ class HEXAPOD:
                 time.sleep(0.2)
                 self.fix_body_slop()
             #move_three_servos(other.high.first, other.mid.first, other.low.first, 120)
-            print("done!!")
+
             time.sleep(speed)
         time.sleep(0.5)
         pitch, roll = self.get_angles()
         print(f"Final Pitch: {pitch:.2f}°, Final Roll: {roll:.2f}°")
         move_set_limit(set, 90)
-        print("done!!")
+
 #--------------------------------------------------
     def backward(self,lenght):
         set = left_set
@@ -419,11 +433,11 @@ class HEXAPOD:
                 time.sleep(0.2)
                 self.fix_body_slop()
             #move_three_servos(other.high.first, other.mid.first, other.low.first, 60)
-            print("done!!")
+
             time.sleep(speed)
         time.sleep(0.5)
         move_set_limit(set, 90)
-        print("done!!")
+
 #--------------------------------------------------
     def stand_up(self):
         move_set(left_set, 90)
@@ -431,7 +445,7 @@ class HEXAPOD:
         move_set(right_set, 90)
         body_up(left_set, 40)
         body_up(right_set, 40)
-        print(f"{LHS.pos} {RHS.pos} {LLS.pos} {RLS.pos}")
+
 #--------------------------------------------------
     def turn_left(self,steps):
         count = 90
@@ -486,7 +500,7 @@ class HEXAPOD:
 
     def camera_center(self):
         move_servo(camera, 80)
-        print("i do it motherfucker")
+
     
     def dir_left(self):
         move_servo(camera, 180)
